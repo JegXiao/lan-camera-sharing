@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>摄像头共享大厅</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 头部控制栏 -->
+        <div class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-video"></i> 摄像头共享大厅</h1>
+                <p class="subtitle">实时音视频共享 • 语音消息</p>
+            </div>
+            <div class="header-right">
+                <div class="server-info">
+                    <i class="fas fa-server"></i>
+                    <span id="serverUrl">正在连接...</span>
+                </div>
+                <div class="connection-status">
+                    <span id="connectionStatus" class="status-offline">离线</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="content">
+            <!-- 左侧控制面板 -->
+            <div class="control-panel">
+                <!-- 我的摄像头区域 -->
+                <div class="my-camera-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-broadcast-tower"></i> 我的直播</h2>
+                        <div class="camera-status">
+                            <span id="cameraStatus" class="status-offline">离线</span>
+                        </div>
+                    </div>
+
+                    <!-- 视频容器 -->
+                    <div class="video-container" id="videoContainer">
+                        <video id="localVideo" autoplay playsinline muted></video>
+                        <div class="video-overlay" id="videoOverlay">
+                            <i class="fas fa-video-slash"></i>
+                            <span>摄像头已关闭</span>
+                        </div>
+
+                        <!-- 音频指示器 -->
+                        <div class="audio-indicator" id="audioIndicator">
+                            <div class="audio-level">
+                                <div class="level-bar"></div>
+                                <div class="level-bar"></div>
+                                <div class="level-bar"></div>
+                                <div class="level-bar"></div>
+                                <div class="level-bar"></div>
+                            </div>
+                            <i class="fas fa-microphone"></i>
+                        </div>
+
+                        <!-- 设备信息 -->
+                        <div class="device-info-overlay">
+                            <div class="device-name" id="deviceNameDisplay">我的设备</div>
+                            <div class="audio-status" id="audioStatusOverlay">
+                                <i class="fas fa-microphone"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 摄像头控制按钮 -->
+                    <div class="camera-controls">
+                        <button id="startCamera" class="btn btn-primary">
+                            <i class="fas fa-play"></i> 开始共享
+                        </button>
+                        <button id="stopCamera" class="btn btn-danger" disabled>
+                            <i class="fas fa-stop"></i> 停止共享
+                        </button>
+                    </div>
+
+                    <!-- 设备状态 -->
+                    <div class="device-status">
+                        <div class="status-row">
+                            <div class="status-item">
+                                <i class="fas fa-id-card"></i>
+                                <span>设备ID:</span>
+                                <span id="deviceId" class="status-value">-</span>
+                            </div>
+                            <div class="status-item">
+                                <i class="fas fa-signal"></i>
+                                <span>状态:</span>
+                                <span id="status" class="status-value">准备就绪</span>
+                            </div>
+                        </div>
+                        <div class="status-row">
+                            <div class="status-item">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>帧率:</span>
+                                <span id="currentFps" class="status-value">60 FPS</</span>
+                            </div>
+                            <div class="status-item">
+                                <i class="fas fa-users"></i>
+                                <span>在线:</span>
+                                <span id="onlineCount" class="status-value">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 语音消息区域 -->
+                <div class="voice-message-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-microphone"></i> 语音消息</h2>
+                        <div class="voice-status">
+                            <span id="voiceStatus">准备就绪</span>
+                        </div>
+                    </div>
+
+                    <!-- 录音控制 -->
+                    <div class="voice-controls">
+                        <button id="recordVoiceBtn" class="btn btn-voice-record">
+                            <i class="fas fa-microphone"></i>
+                            <span>按住说话</span>
+                        </button>
+
+                        <div class="recording-indicator" id="recordingIndicator" style="display: none;">
+                            <div class="recording-animation">
+                                <div class="pulse"></div>
+                                <i class="fas fa-microphone"></i>
+                            </div>
+                            <div class="recording-time">
+                                <span id="recordingTime">00:00</span>
+                            </div>
+                            <div class="recording-waveform" id="recordingWaveform">
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 语音消息列表 -->
+                    <div class="voice-messages-container">
+                        <div class="voice-messages-header">
+                            <h3><i class="fas fa-comments"></i> 消息列表</h3>
+                            <button id="clearMessagesBtn" class="btn btn-icon" title="清空消息">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+
+                        <div class="voice-messages-list" id="voiceMessagesList">
+                            <div class="no-messages-placeholder">
+                                <i class="fas fa-comment-slash"></i>
+                                <p>暂无语音消息</p>
+                                <p>按住上方按钮开始录音</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 设备设置 -->
+                <div class="device-setup-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-cog"></i> 设备设置</h2>
+                    </div>
+
+                    <!-- 设备名称设置 -->
+                    <div class="device-name-setting">
+                        <label for="deviceNameInput">
+                            <i class="fas fa-user-edit"></i> 设备名称
+                        </label>
+                        <div class="name-input-group">
+                            <input
+                                type="text"
+                                id="deviceNameInput"
+                                placeholder="请输入设备名称"
+                                maxlength="20"
+                                value="我的设备"
+                            >
+                            <button id="saveNameBtn" class="btn btn-icon" title="保存">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 音视频控制 -->
+                    <div class="media-controls">
+                        <div class="toggle-control">
+                            <input type="checkbox" id="audioToggle" checked>
+                            <label for="audioToggle" class="toggle-label">
+                                <div class="toggle-icon">
+                                    <i class="fas fa-microphone"></i>
+                                </div>
+                                <div class="toggle-text">
+                                    <span>麦克风</span>
+                                    <span class="toggle-status" id="audioToggleStatus">开启</span>
+                                </div>
+                                <div class="toggle-switch"></div>
+                            </label>
+                        </div>
+
+                        <div class="toggle-control">
+                            <input type="checkbox" id="videoToggle" checked>
+                            <label for="videoToggle" class="toggle-label">
+                                <div class="toggle-icon">
+                                    <i class="fas fa-video"></i>
+                                </div>
+                                <div class="toggle-text">
+                                    <span>摄像头</span>
+                                    <span class="toggle-status" id="videoToggleStatus">开启</span>
+                                </div>
+                                <div class="toggle-switch"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 帧率控制 -->
+                    <div class="fps-controls">
+                        <div class="fps-header">
+                            <h3><i class="fas fa-sliders-h"></i> 帧率控制</h3>
+                            <div class="current-fps">
+                                <span id="fpsValue">60</span> FPS
+                            </div>
+                        </div>
+
+                        <div class="fps-presets">
+                            <button class="fps-preset-btn" data-fps="20">
+                                <i class="fas fa-running"></i>
+                                <span>流畅</span>
+                                <span class="fps-badge">20</span>
+                            </button>
+                            <button class="fps-preset-btn" data-fps="30">
+                                <i class="fas fa-bolt"></i>
+                                <span>高速</span>
+                                <span class="fps-badge">30</span>
+                            </button>
+                            <button class="fps-preset-btn active" data-fps="60">
+                                <i class="fas fa-fire"></i>
+                                <span>极速</span>
+                                <span class="fps-badge">60</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧大厅 -->
+            <div class="lobby-panel">
+                <!-- 大厅头部 -->
+                <div class="lobby-header">
+                    <h2><i class="fas fa-users"></i> 共享大厅</h2>
+                    <div class="lobby-stats">
+                        <div class="lobby-stat">
+                            <i class="fas fa-wifi"></i>
+                            <span>在线: <strong id="lobbyOnlineCount">0</strong></span>
+                        </div>
+                        <div class="lobby-stat">
+                            <i class="fas fa-broadcast-tower"></i>
+                            <span>共享: <strong id="lobbyStreamingCount">0</strong></span>
+                        </div>
+                        <div class="lobby-stat">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>平均: <strong id="avgFps">- FPS</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 视频流显示区域 -->
+                <div id="streamsContainer" class="streams-grid">
+                    <div class="no-streams-placeholder">
+                        <div class="placeholder-content">
+                            <i class="fas fa-video-slash"></i>
+                            <h3>等待共享画面...</h3>
+                            <p>开启摄像头后，画面将显示在这里</p>
+                            <p>其他设备的画面也会实时显示</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 语音消息播放模板 -->
+    <template id="voiceMessageTemplate">
+        <div class="voice-message-item">
+            <div class="voice-message-header">
+                <div class="sender-info">
+                    <i class="fas fa-user"></i>
+                    <span class="sender-name"></span>
+                </div>
+                <div class="message-time"></div>
+            </div>
+            <div class="voice-message-content">
+                <button class="play-btn">
+                    <i class="fas fa-play"></i>
+                </button>
+                <div class="voice-waveform">
+                    <div class="wave-progress"></div>
+                </div>
+                <div class="voice-duration">
+                    <span class="duration-text"></span>
+                </div>
+            </div>
+            <audio class="voice-audio" preload="none"></audio>
+        </div>
+    </template>
+
+    <!-- 消息提示 -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
